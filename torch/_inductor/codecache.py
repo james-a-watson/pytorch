@@ -905,8 +905,25 @@ class AotCodeCache:
             specified_dir=config.aot_inductor_output_path,
         )
 
+        aot_constants = b""
+        for name, _ in graph.aot_constant_offset:
+            tensor = graph.constants[name]
+            tensor = tensor.contiguous()
+            data_size = tensor.nelement() * tensor.element_size()
+            if data_size == 0:
+                continue
+            else:
+                import ctypes
+
+                tensor = tensor.cpu().detach()
+                raw_array = ctypes.cast(
+                    tensor.data_ptr(),
+                    ctypes.POINTER(ctypes.c_ubyte * data_size),
+                )
+                aot_constants += bytes(raw_array.contents)
+
         consts_key, consts_path = write(
-            b"".join(graph.aot_constants),
+            aot_constants,
             "bin",
             specified_dir=config.aot_inductor_output_path,
         )

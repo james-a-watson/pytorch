@@ -1073,46 +1073,31 @@ class CppWrapperCodeGen(WrapperCodeGen):
                         f"inputs_info_[{idx}].shape.emplace_back({size}, {size}, nullptr);"
                     )
 
-            if V.graph.aot_mode:
-                curr_offset = 0
-                for idx, (name, tensor) in enumerate(V.graph.constants.items()):
-                    assert isinstance(tensor, torch.Tensor)
-                    self.prefix.writeline(
-                        f"""constants_info_[{idx}].name = "{name}";"""
-                    )
-                    self.prefix.writeline(
-                        f"constants_info_[{idx}].dtype = {DTYPE_TO_ATEN[tensor.dtype]};"
-                    )
-                    tensor = tensor.contiguous()
-                    data_size = tensor.nelement() * tensor.element_size()
-                    self.prefix.writeline(
-                        f"constants_info_[{idx}].offset = {curr_offset};"
-                    )
-                    curr_offset += data_size
-                    self.prefix.writeline(
-                        f"constants_info_[{idx}].data_size = {data_size};"
-                    )
-                    if data_size == 0:
-                        V.graph.aot_constants.append(b"")
-                    else:
-                        import ctypes
+            constant_offset_mapping = dict(V.graph.aot_constant_offset)  # noqa: C416
+            for idx, (name, tensor) in enumerate(V.graph.constants.items()):
+                assert isinstance(tensor, torch.Tensor)
+                self.prefix.writeline(f"""constants_info_[{idx}].name = "{name}";""")
+                self.prefix.writeline(
+                    f"constants_info_[{idx}].dtype = {DTYPE_TO_ATEN[tensor.dtype]};"
+                )
+                self.prefix.writeline(
+                    f"constants_info_[{idx}].offset = {constant_offset_mapping[name]};"
+                )
+                tensor = tensor.contiguous()
+                data_size = tensor.nelement() * tensor.element_size()
+                self.prefix.writeline(
+                    f"constants_info_[{idx}].data_size = {data_size};"
+                )
 
-                        tensor = tensor.cpu().detach()
-                        raw_array = ctypes.cast(
-                            tensor.data_ptr(),
-                            ctypes.POINTER(ctypes.c_ubyte * data_size),
-                        )
-                        V.graph.aot_constants.append(bytes(raw_array.contents))
-
-                    sizes = tensor.shape
+                sizes = tensor.shape
+                self.prefix.writeline(
+                    f"constants_info_[{idx}].shape.reserve({len(sizes)});"
+                )
+                for size in sizes:
                     self.prefix.writeline(
-                        f"constants_info_[{idx}].shape.reserve({len(sizes)});"
+                        f"constants_info_[{idx}].shape.emplace_back({size}, {size}, nullptr);"
                     )
-                    for size in sizes:
-                        self.prefix.writeline(
-                            f"constants_info_[{idx}].shape.emplace_back({size}, {size}, nullptr);"
-                        )
-                self.prefix.writeline("constants_ = constants_map;")
+            self.prefix.writeline("constants_ = constants_map;")
 
             for idx, output in enumerate(V.graph.graph_outputs):
                 # TODO: handle symbolic expressions later.

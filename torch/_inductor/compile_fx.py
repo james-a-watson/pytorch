@@ -849,7 +849,7 @@ def compile_fx_aot(
     example_inputs_: List[torch.Tensor],
     inner_compile: Callable[..., Any] = compile_fx_inner,
     config_patches: Optional[Dict[str, Any]] = None,
-) -> str:
+):
     config_patches = (
         {"cpp_wrapper": True}
         if config_patches is None

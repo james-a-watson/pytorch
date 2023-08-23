@@ -208,7 +208,8 @@ class GraphLowering(torch.fx.Interpreter):
         self.name = "GraphLowering"
         self.cpp_wrapper = cpp_wrapper
         self.aot_mode = aot_mode
-        self.aot_constants: List[bytes] = []
+        self.aot_constant_curr_offset: int = 0
+        self.aot_constant_offset: List[Tuple[str, int]] = []
         self.graph_id = graph_id
         self.scheduler = None
         self.nodes_prefer_channels_last = (
@@ -517,6 +518,10 @@ class GraphLowering(torch.fx.Interpreter):
             return name
 
         name = allocate(name)
+        tensor = data.contiguous()
+        data_size = tensor.nelement() * tensor.element_size()
+        self.aot_constant_offset.append((name, self.aot_constant_curr_offset))
+        self.aot_constant_curr_offset += data_size
 
         return TensorBox.create(
             ir.ConstantBuffer(
