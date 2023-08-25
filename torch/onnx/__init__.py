@@ -110,9 +110,6 @@ __all__ = [
     "DiagnosticOptions",
     # DORT / torch.compile
     "is_onnxrt_supported",
-    "_OrtExecutionProvider",
-    "_OrtBackendOptions",
-    "_OrtBackend",
 ]
 
 # Set namespace for exposed private names
