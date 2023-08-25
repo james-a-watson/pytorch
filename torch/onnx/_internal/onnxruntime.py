@@ -942,6 +942,7 @@ class OrtBackend:
 
         return self.compile(graph_module, args)
 
+    __instance_cache_max_count: Final = 8
     __instance_cache: Final[List["OrtBackend"]] = []
 
     @staticmethod
@@ -990,6 +991,7 @@ class OrtBackend:
                     and a.export_options.fake_context is b.export_options.fake_context
                 )
 
+            # We can't account for how the two option sets may differ, so it's not safe to reuse.
             return False
 
         if not isinstance(options, OrtBackendOptions):
@@ -1001,6 +1003,13 @@ class OrtBackend:
         )
 
         if backend is None:
+            assert (
+                len(OrtBackend.__instance_cache) < OrtBackend.__instance_cache_max_count
+            ), (
+                f"No more than {OrtBackend.__instance_cache_max_count} instances of "
+                f"{OrtBackend} allowed. Please instantiate `{OrtBackend}` explicitly "
+                "to pass to `torch.compile`."
+            )
             OrtBackend.__instance_cache.append(backend := OrtBackend(options))
 
         return backend
@@ -1015,13 +1024,10 @@ class OrtBackend:
 
 
 @compatibility(is_backward_compatible=False)
-def make_torch_compile_backend():
-    def compiler_fn(
-        graph_module: torch.fx.GraphModule,
-        args,
-        *,
-        options: Optional[Union[OrtBackendOptions, Mapping[str, Any]]] = None,
-    ):
-        return OrtBackend.get_cached_instance_for_options(options)(graph_module, args)
-
-    return compiler_fn
+def torch_compile_backend(
+    graph_module: torch.fx.GraphModule,
+    args,
+    *,
+    options: Optional[Union[OrtBackendOptions, Mapping[str, Any]]] = None,
+):
+    return OrtBackend.get_cached_instance_for_options(options)(graph_module, args)

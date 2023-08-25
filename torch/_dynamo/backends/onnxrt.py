@@ -2,14 +2,11 @@
 # to the right people, please tag related GitHub issues with `module: onnx`.
 #
 # Maintainers' Github IDs: wschin, thiagocrepaldi, BowenBao, abock
-from torch.onnx._internal.onnxruntime import (
-    is_onnxrt_supported,
-    make_torch_compile_backend,
-)
+from torch.onnx._internal.onnxruntime import is_onnxrt_supported, torch_compile_backend
 from .registry import register_backend
 
 if is_onnxrt_supported():
-    register_backend(name="onnxrt", compiler_fn=make_torch_compile_backend())
+    register_backend(name="onnxrt", compiler_fn=torch_compile_backend)
 else:
 
     def information_displaying_backend(*args, **kwargs):
