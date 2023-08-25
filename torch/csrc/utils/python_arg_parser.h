@@ -800,7 +800,8 @@ inline at::Device toDevice(PyObject* obj) {
   if (THPUtils_checkLong(obj)) {
     const auto device_index = THPUtils_unpackLong(obj);
     TORCH_CHECK(device_index >= 0, "Device index must not be negative");
-    return at::Device(c10::DeviceType::CUDA, static_cast<c10::DeviceIndex>(device_index));
+    return at::Device(
+        c10::DeviceType::CUDA, static_cast<c10::DeviceIndex>(device_index));
   }
   const std::string& device_str = THPUtils_unpackString(obj);
   return at::Device(device_str);
@@ -1050,11 +1051,9 @@ inline double PythonArgs::toDoubleWithDefault(int i, double default_double) {
 }
 
 inline c10::complex<double> PythonArgs::toComplex(int i) {
-  c10::complex<double> default_value = *const_cast<c10::complex<double>*>(
-      reinterpret_cast<const c10::complex<double>*>(
-          signature.params[i].default_complex));
   if (!args[i])
-    return default_value;
+    return *(reinterpret_cast<const c10::complex<double>*>(
+        signature.params[i].default_complex));
   return THPUtils_unpackComplexDouble(args[i]);
 }
 
