@@ -1008,7 +1008,9 @@ class OrtBackend:
             ), (
                 f"No more than {OrtBackend.__instance_cache_max_count} instances of "
                 f"{OrtBackend} allowed. Please instantiate `{OrtBackend}` explicitly "
-                "to pass to `torch.compile`."
+                "to pass to `torch.compile`. "
+                "See https://github.com/pytorch/pytorch/pull/107973#discussion_r1306144795 "
+                "for discussion."
             )
             OrtBackend.__instance_cache.append(backend := OrtBackend(options))
 
