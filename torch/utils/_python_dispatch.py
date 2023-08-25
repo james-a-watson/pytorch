@@ -267,8 +267,12 @@ def return_and_correct_aliasing(func, args, kwargs, out):
         # Assumption: we have a very small number of inplace_view ops that follow a strict schema:
         # there is only a single argument that gets its metadata mutated.
         assert len(mutated_args) == 1
-        with torch.utils._mode_utils.no_dispatch():
-            func(*args, **kwargs)
+        # This check exists because we generally *do* want to update the metadata of any wrapper subclasses,
+        # but FunctionalTensor is special: it overrides all size/stride calls to plumb to the inner tensor.
+        # so we don't actually need to update the metadata (and attempting to do so causes errors)
+        if not isinstance(mutated_args[0], torch._subclasses.functional_tensor.FunctionalTensor):
+            with torch.utils._mode_utils.no_dispatch():
+                func(*args, **kwargs)
 
     # Next: we need to make sure to return inputs directly, if the output is a mutable alias (e.g. add_()).
 
