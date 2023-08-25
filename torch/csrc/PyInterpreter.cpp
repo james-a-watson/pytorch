@@ -590,7 +590,7 @@ c10::IntArrayRef ConcretePyInterpreterVTable::strides(
 }
 
 static void set_tensor_attr_with_capsule(
-    c10::TensorImpl* tensor,
+    const c10::TensorImpl* tensor,
     py::capsule& capsule,
     const char* attr_name) {
   c10::optional<PyObject*> mb_obj =
@@ -624,7 +624,7 @@ c10::IntArrayRef ConcretePyInterpreterVTable::sizes(
   TORCH_CHECK(
       py::isinstance<py::tuple>(out) || py::isinstance<py::list>(out),
       "sizes must be a list or a tuple");
-  int64_t len = py::len(out);
+  size_t len = py::len(out);
   int64_t* ptr = new int64_t[len];
   auto capsule =
       py::capsule(ptr, [](void* p) { delete[] reinterpret_cast<int64_t*>(p); });
@@ -632,8 +632,7 @@ c10::IntArrayRef ConcretePyInterpreterVTable::sizes(
   for (auto it = out.begin(); it != out.end(); ++it, ++idx) {
     ptr[idx] = py::cast<int64_t>(*it);
   }
-  set_tensor_attr_with_capsule(
-      const_cast<c10::TensorImpl*>(self), capsule, "_sizes_capsule");
+  set_tensor_attr_with_capsule(self, capsule, "_sizes_capsule");
   return c10::IntArrayRef(ptr, len);
   END_HANDLE_TH_ERRORS_PYBIND
 }
@@ -660,7 +659,7 @@ c10::SymIntArrayRef ConcretePyInterpreterVTable::sym_sizes(
   TORCH_CHECK(
       py::isinstance<py::tuple>(out) || py::isinstance<py::list>(out),
       "sym_size must be a list or a tuple");
-  int64_t len = py::len(out);
+  size_t len = py::len(out);
   c10::SymInt* ptr = new c10::SymInt[len];
   auto capsule = py::capsule(
       ptr, [](void* p) { delete[] reinterpret_cast<c10::SymInt*>(p); });
@@ -668,8 +667,7 @@ c10::SymIntArrayRef ConcretePyInterpreterVTable::sym_sizes(
   for (auto it = out.begin(); it != out.end(); ++it, ++idx) {
     ptr[idx] = py::cast<c10::SymInt>(*it);
   }
-  set_tensor_attr_with_capsule(
-      const_cast<c10::TensorImpl*>(self), capsule, "_sym_sizes_capsule");
+  set_tensor_attr_with_capsule(self, capsule, "_sym_sizes_capsule");
   return c10::SymIntArrayRef(ptr, len);
   END_HANDLE_TH_ERRORS_PYBIND
 }
@@ -769,7 +767,7 @@ c10::SymIntArrayRef ConcretePyInterpreterVTable::sym_strides(
   TORCH_CHECK(
       py::isinstance<py::tuple>(out) || py::isinstance<py::list>(out),
       "sym_strides must be a list or a tuple");
-  int64_t len = py::len(out);
+  size_t len = py::len(out);
   c10::SymInt* ptr = new c10::SymInt[len];
   auto capsule = py::capsule(
       ptr, [](void* p) { delete[] reinterpret_cast<c10::SymInt*>(p); });
@@ -777,8 +775,7 @@ c10::SymIntArrayRef ConcretePyInterpreterVTable::sym_strides(
   for (auto it = out.begin(); it != out.end(); ++it, ++idx) {
     ptr[idx] = py::cast<c10::SymInt>(*it);
   }
-  set_tensor_attr_with_capsule(
-      const_cast<c10::TensorImpl*>(self), capsule, "_sym_strides_capsule");
+  set_tensor_attr_with_capsule(self, capsule, "_sym_strides_capsule");
   return c10::SymIntArrayRef(ptr, len);
   END_HANDLE_TH_ERRORS_PYBIND
 }
