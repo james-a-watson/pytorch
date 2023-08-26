@@ -30,3 +30,9 @@ def get_cuda_version() -> Optional[str]:
     except Exception as e:
         logging.error(f"Error getting cuda version: {e=}")
         return None
+
+
+def nvcc_exist() -> bool:
+    import subprocess
+    res = subprocess.call(["which", "nvcc"])
+    return res == 0
