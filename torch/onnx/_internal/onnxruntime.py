@@ -15,8 +15,6 @@ from typing import (
     Union,
 )
 
-from functorch.compile import min_cut_rematerialization_partition
-
 from typing_extensions import TypeAlias
 
 import torch
@@ -932,6 +930,8 @@ class OrtBackend:
         will be invoked, wrapping this ``OrtBackend`` instance's ``compile`` method. Otherwise,
         the ``compile`` method is invoked directly."""
         if self._options.use_aot_autograd:
+            from functorch.compile import min_cut_rematerialization_partition
+
             from torch._dynamo.backends.common import aot_autograd
 
             return aot_autograd(
