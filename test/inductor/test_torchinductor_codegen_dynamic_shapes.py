@@ -111,6 +111,11 @@ def check_codegen(
 # xfail by default, set is_skip=True to skip
 test_failures = {
     #
+    # Failed to find dynamic for loop variable (no kernels generated)
+    #
+    "test_fft_real_input_dynamic_shapes": TestFailure(("cpu", "cuda")),
+    "test_fft_real_input_real_output_dynamic_shape": TestFailure(("cpu", "cuda")),
+    #
     # Failed to find dynamic for loop variable:
     #
     "test_arange1_dynamic_shapes": TestFailure(("cpu",)),
@@ -264,8 +269,6 @@ test_failures = {
     #
     "test_cudnn_rnn_dynamic_shapes": TestFailure(("cuda",)),
     "test_kwargs_dynamic_shapes": TestFailure(("cpu",)),
-    "test_fft_real_input_dynamic_shapes": TestFailure(("cpu", "cuda")),
-    "test_fft_real_input_real_output_dynamic_shapes": TestFailure(("cpu", "cuda")),
     # test_roi_align uses torchvision, which doesn't work with dynamic shapes
     "test_roi_align_dynamic_shapes": TestFailure(("cpu", "cuda")),
     "test_aliased_buffer_reuse_dynamic_shapes": TestFailure(("cpu",)),
