@@ -5,9 +5,11 @@
 from torch.onnx._internal.onnxruntime import is_onnxrt_supported, torch_compile_backend
 from .registry import register_backend
 
+
 def has_onnxruntime():
     # FIXME(abock): update test/dynamo/test_backends.py to call is_onnxrt_supported()
     return is_onnxrt_supported()
+
 
 if is_onnxrt_supported():
     register_backend(name="onnxrt", compiler_fn=torch_compile_backend)
