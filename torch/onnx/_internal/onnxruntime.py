@@ -536,7 +536,7 @@ class OrtBackendOptions:
 
         >>> @torch.compile(
         ...     backend="onnxrt",
-        ...     options=torch.onnx.OrtBackendOptions(...),
+        ...     options=torch.onnx._OrtBackendOptions(...),
         ... )
         ... def ort_function(x):
         ...     return x ** x
