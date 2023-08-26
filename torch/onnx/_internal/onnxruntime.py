@@ -56,6 +56,14 @@ try:
 except ImportError:
     _SUPPORT_ONNXRT = False
 
+__all__ = [
+    "is_onnxrt_supported",
+    "torch_compile_backend",
+    "OrtExecutionProvider",
+    "OrtBackendOptions",
+    "OrtBackend",
+]
+
 
 def is_onnxrt_supported() -> bool:
     """Returns ``True`` if ONNX Runtime dependencies are installed and usable
