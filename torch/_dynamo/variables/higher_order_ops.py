@@ -18,6 +18,7 @@ from ..guards import GuardBuilder
 from ..source import FSDPNNModuleSource, GetItemSource, NNModuleSource
 from ..utils import proxy_args_kwargs
 from .lists import ListVariable, TupleVariable
+from .nn_module import NNModuleVariable
 
 
 log = logging.getLogger(__name__)
@@ -328,10 +329,10 @@ class CondHigherOrderVariable(TorchHigherOrderOperatorVariable):
         tx.output.guards.update(args[0].guards)
 
         # operands
-        if type(args[3]) is not ListVariable:
+        if not isinstance(args[3], (ListVariable, TupleVariable)):
             raise UserError(
                 UserErrorType.DYNAMIC_CONTROL_FLOW,
-                f"Expected a list but got {args[3].python_type()}",
+                f"Expected a list or tuple but got {args[3].python_type()}",
             )
         operands = args[3].unpack_var_sequence(tx)
         if not all(
@@ -351,13 +352,15 @@ class CondHigherOrderVariable(TorchHigherOrderOperatorVariable):
 
         # branches
         assert isinstance(
-            args[1], (UserFunctionVariable, NestedUserFunctionVariable)
+            args[1],
+            (UserFunctionVariable, NestedUserFunctionVariable, NNModuleVariable),
         ), str(
             type(args[1])
         )  # true_fn
 
         assert isinstance(
-            args[2], (UserFunctionVariable, NestedUserFunctionVariable)
+            args[2],
+            (UserFunctionVariable, NestedUserFunctionVariable, NNModuleVariable),
         ), str(
             type(args[2])
         )  # false_fn
@@ -398,7 +401,7 @@ class CondHigherOrderVariable(TorchHigherOrderOperatorVariable):
             if not isinstance(ret_val, TensorVariable):
                 raise UserError(
                     UserErrorType.DYNAMIC_CONTROL_FLOW,
-                    "Expected branch out type to be a single tensor",
+                    "Expected branch to return a single tensor",
                 )
             return ret_val, ret_graph, ret_lifted_freevars
 
@@ -474,7 +477,7 @@ class CondHigherOrderVariable(TorchHigherOrderOperatorVariable):
             tx=tx,
             proxy=tx.output.create_proxy(
                 "call_function",
-                self.value,
+                torch.ops.higher_order.cond,
                 args=tuple(p_args),
                 kwargs=p_kwargs,
             ),
